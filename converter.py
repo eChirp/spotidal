@@ -11,7 +11,7 @@ class ConverterApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Spotify to Tidal Converter")
-        self.geometry("600 x 500")
+        self.geometry("600x500")
         
         # UI Elements
         tk.Label(self, text="Spotify Client ID:").pack(anchor="w", padx=10, pady=(10, 0))
