@@ -2,9 +2,14 @@ name: Build and Release Executable
 
 on:
   push:
+    branches:
+      - main
     tags:
-      - 'v*' # Startet den Build automatisch, wenn ein Tag wie "v1.0.0" gepushed wird
-  workflow_dispatch: # Erlaubt manuelles Ausführen im GitHub-Actions-Tab
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,11 +20,7 @@ jobs:
         include:
           - os: windows-latest
             artifact_name: SpotifyToTidalConverter.exe
-            asset_name: SpotifyToTidalConverter-Windows.exe
-          # Optional: macOS oder Linux hinzufügen, falls gewünscht
-          # - os: ubuntu-latest
-          #   artifact_name: SpotifyToTidalConverter
-          #   asset_name: SpotifyToTidalConverter-Linux
+            asset_name: SpotifyToTidalConverter-Windows
 
     steps:
       - name: Checkout Code
@@ -29,7 +30,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          #cache: 'pip'
 
       - name: Install Dependencies
         run: |
@@ -40,12 +40,15 @@ jobs:
         run: |
           pyinstaller converter.spec
 
-      - name: Upload Artifact (für spätere Downloads im Workflow)
+      # Erstellt das herunterladbare Artefakt bei JEDEM Durchlauf (Push/PR/Release)
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
           path: dist/${{ matrix.artifact_name }}
+          retention-days: 90
 
+      # Erstellt ein GitHub-Release NUR, wenn ein Tag gepusht wird (z. B. v1.0.0)
       - name: Create Release and Upload Asset
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
